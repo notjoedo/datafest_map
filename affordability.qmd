@@ -5,6 +5,37 @@ format: html
 
 ```{r}
 library(tidyverse)
+library(stringr)
+afford_df <- read_csv("cost_of_living_us.csv") #2024
 
+environment_df <- read_csv("Eqi_results_2013JULY22.csv") |> 
+  mutate(
+    county_name = str_remove(county_name, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish|c|ci|cit|city)$"),
+    county_combined = paste(county_name, state)
+  ) |> 
+  select(county_combined, EQI_22July2013) |> 
+  rename(county = county_combined,
+         EQI = EQI_22July2013)
+
+health_df <- read_csv("U.S._Life_Expectancy_at_Birth_by_State_and_Census_Tract_-_2010-2015.csv")
+
+economic_df <- afford_df |> 
+  filter(family_member_count == "2p2c") |> 
+  mutate(
+    county = str_remove(county, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish|c|ci|cit|city)$"),
+    county_combined = paste(county, state)
+  ) |> 
+  select(county_combined, median_family_income) |> 
+  rename(county = county_combined)
+
+prosperity_df <- environment_df |> 
+  left_join(economic_df, by = "county")
 ```
+
+```{r}
+model_df <- df |> 
+  filter(family_member_count == "2p2c")  |> 
+  select(county, housing_cost, food_cost, transportation_cost, healthcare_cost, other_necessities_cost, childcare_cost, taxes)
+```
+
 
