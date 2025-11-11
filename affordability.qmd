@@ -80,18 +80,111 @@ prosperity_df <- environment_df |>
 
 prosperity_df <- prosperity_df |> 
   mutate(
-    EQI_z = scale(EQI),
-    income_z = scale(median_family_income),
-    lifeExp_z = scale(meanLifeExpectancy),
+    EQI_z = as.numeric(scale(EQI)),
+    income_z = as.numeric(scale(median_family_income)),
+    lifeExp_z = as.numeric(scale(meanLifeExpectancy)),
     
     prosperity_score = (EQI_z + income_z + lifeExp_z) / 3
   )
+
+prosperity_scores <- prosperity_df |> 
+  select(county, prosperity_score)
 ```
 
 ```{r}
-model_df <- df |> 
+model_df <- afford_df |> 
   filter(family_member_count == "2p2c")  |> 
-  select(county, housing_cost, food_cost, transportation_cost, healthcare_cost, other_necessities_cost, childcare_cost, taxes)
+  select(county, state, housing_cost, food_cost, transportation_cost, healthcare_cost, other_necessities_cost, childcare_cost, taxes) |> 
+  mutate(
+    county = str_replace(county, "(?i)\\s+(c|ci|cit)$", " city"),
+    county = str_remove(county, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish)$"),
+    county_combined = paste(county, state)
+  ) |> 
+  select(-county) |> 
+  rename(county = county_combined) |> 
+  select(county, housing_cost, food_cost, transportation_cost, healthcare_cost, other_necessities_cost, childcare_cost, taxes) |> 
+  left_join(prosperity_scores, by = "county") |> 
+  filter(!is.na(prosperity_score))
 ```
+
+XGBoost Model
+```{r}
+library(tidymodels)
+
+split <- initial_split(model_df, prop = .8)
+train <- training(split)
+test <- testing(split)
+
+rec <- train_data |> 
+  recipe(prosperity_score ~ .) |> 
+  step_rm(county) |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_corr(all_numeric_predictors())
+
+xgb_spec <- boost_tree(
+  trees = tune(),
+  learn_rate = tune(),
+  tree_depth = tune(),
+  min_n = tune(),
+  loss_reduction = tune(),
+  sample_size = tune(),
+  mtry = tune()
+  ) |>
+  set_engine("xgboost") |>
+  set_mode("regression")
+
+wf <- workflow() |>
+  add_model(xgb_spec) |>
+  add_recipe(rec)
+
+folds <- vfold_cv(train, v = 5)
+
+rec_prep <- prep(rec, training = train)
+train_after_recipe <- juice(rec_prep) |> select(-prosperity_score)
+
+grid <- grid_latin_hypercube(
+  trees(),
+  learn_rate(range = c(0.01, 0.3)),
+  tree_depth(),
+  min_n(),
+  loss_reduction(),
+  sample_size = sample_prop(),
+  finalize(mtry(), train_after_recipe),
+  size = 30
+)
+
+tuned <- tune_grid(
+  wf,
+  resamples = folds,
+  grid = grid,
+  metrics = metric_set(rmse, rsq),
+  control = control_grid(save_pred = TRUE)
+)
+
+best_params <- select_best(tuned, metric = "rmse")
+final_wf <- finalize_workflow(wf, best_params)
+
+final_fit <- fit(final_wf, data = train)
+
+metrics_tbl <- predict(final_fit, test) |>
+  bind_cols(test |> select(prosperity_score)) |>
+  metric_set(rmse, rsq, mae)(truth = prosperity_score, estimate = .pred) |>
+  arrange(.metric) |>
+  mutate(
+    .metric = toupper(.metric), 
+    .estimate = round(.estimate, 4)
+  )
+
+metrics_tbl
+
+results_df <- predict(final_fit, test) |>
+  rename(predicted_prosperity_score = .pred) |>
+  bind_cols(test |> select(county, prosperity_score)) |>
+  select(county, prosperity_score, predicted_prosperity_score) |>
+  mutate(
+    difference = predicted_prosperity_score - prosperity_score
+  )
+```
+
 
 
