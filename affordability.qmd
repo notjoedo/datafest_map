@@ -10,26 +10,82 @@ afford_df <- read_csv("cost_of_living_us.csv") #2024
 
 environment_df <- read_csv("Eqi_results_2013JULY22.csv") |> 
   mutate(
-    county_name = str_remove(county_name, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish|c|ci|cit|city)$"),
+    county_name = str_replace(county_name, "\\s+(c|ci|cit)$", " city"),
+    county_name = str_remove(county_name, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish)$"),
     county_combined = paste(county_name, state)
   ) |> 
   select(county_combined, EQI_22July2013) |> 
   rename(county = county_combined,
          EQI = EQI_22July2013)
 
-health_df <- read_csv("U.S._Life_Expectancy_at_Birth_by_State_and_Census_Tract_-_2010-2015.csv")
+health_df <- read_csv("U.S._Life_Expectancy_at_Birth_by_State_and_Census_Tract_-_2010-2015.csv") |> 
+  filter(County != "(blank)") |> 
+  select(County, `Life Expectancy`) |> 
+  group_by(County) |> 
+  summarize(
+    meanLifeExpectancy = mean(`Life Expectancy`, na.rm = TRUE)
+  ) |> 
+  filter(!is.na(meanLifeExpectancy)) |> 
+  separate(County, into = c("county_part", "state"), sep = ",", extra = "drop", fill = "right") |>
+  mutate(
+    county_part = str_trim(county_part),
+    state = str_trim(state)
+  ) |> 
+  mutate(
+    county_part = str_replace(county_part, "(?i)\\s+(c|ci|cit)$", " city"),
+    county_name = str_remove(county_part, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish)$"),
+    county = paste(county_name, state)
+  ) |> 
+  select(county, meanLifeExpectancy)
 
 economic_df <- afford_df |> 
   filter(family_member_count == "2p2c") |> 
   mutate(
-    county = str_remove(county, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish|c|ci|cit|city)$"),
+    county = str_replace(county, "(?i)\\s+(c|ci|cit)$", " city"),
+    county = str_remove(county, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish)$"),
     county_combined = paste(county, state)
   ) |> 
   select(county_combined, median_family_income) |> 
   rename(county = county_combined)
 
+corrections <- c(
+  #wrong = right
+  "Colonial Heights VA" = "Colonial Heights city VA",
+  "Mc Kean PA" = "McKean PA",
+  "DeBaca NM" = "De Baca NM",
+  "St. John the Bapt LA" = "St. John the Baptist LA",
+  "La Porte IN" = "LaPorte IN",
+  "Lagrange IN" = "LaGrange IN",
+  "De Kalb IN" = "DeKalb IN",
+  "District of Colum DC" = "District of Columbia DC"
+)
+
+fixNames <- function(df, column, lookup){
+  old_values <- df[[column]]
+  needs_fix <- old_values %in% names(lookup)
+  df[[column]] <- ifelse(
+    needs_fix,
+    lookup[old_values],
+    old_values
+  )
+  return(df)
+}
+
+environment_df <- fixNames(environment_df, "county", corrections)
+
 prosperity_df <- environment_df |> 
-  left_join(economic_df, by = "county")
+  left_join(economic_df, by = "county") |> 
+  left_join(health_df, by = "county") |> 
+  filter(!is.na(meanLifeExpectancy))
+
+prosperity_df <- prosperity_df |> 
+  mutate(
+    EQI_z = scale(EQI),
+    income_z = scale(median_family_income),
+    lifeExp_z = scale(meanLifeExpectancy),
+    
+    prosperity_score = (EQI_z + income_z + lifeExp_z) / 3
+  )
 ```
 
 ```{r}
