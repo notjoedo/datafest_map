@@ -105,6 +105,8 @@ model_df <- afford_df |>
   select(county, housing_cost, food_cost, transportation_cost, healthcare_cost, other_necessities_cost, childcare_cost, taxes) |> 
   left_join(prosperity_scores, by = "county") |> 
   filter(!is.na(prosperity_score))
+
+write_csv(model_df, "modelData.csv")
 ```
 
 XGBoost Model
