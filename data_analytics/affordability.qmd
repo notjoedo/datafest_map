@@ -57,7 +57,13 @@ corrections <- c(
   "La Porte IN" = "LaPorte IN",
   "Lagrange IN" = "LaGrange IN",
   "De Kalb IN" = "DeKalb IN",
-  "District of Colum DC" = "District of Columbia DC"
+  "District of Colum DC" = "District of Columbia DC",
+  "Aleutians East Bo AK" = "Aleutians East Borough AK",
+  "Aleutians West Ce AK" = "Aleutians West Census Area AK",
+  "Anchorage Borough AK" = "Anchorage Municipality AK",
+  "Bethel Census Are AK" = "Bethel Census Area AK",
+  "Bristol Bay Borou AK" = "Bristol Bay Borough AK",
+  ""
 )
 
 fixNames <- function(df, column, lookup){
@@ -84,7 +90,9 @@ prosperity_df <- prosperity_df |>
     income_z = as.numeric(scale(median_family_income)),
     lifeExp_z = as.numeric(scale(meanLifeExpectancy)),
     
-    prosperity_score = (EQI_z + income_z + lifeExp_z) / 3
+    prosperity_avg = (EQI_z + income_z + lifeExp_z) / 3,
+    
+    prosperity_score = as.numeric(scale(EQI_z + income_z + lifeExp_z))
   )
 
 prosperity_scores <- prosperity_df |> 
@@ -108,6 +116,32 @@ model_df <- afford_df |>
 
 write_csv(model_df, "modelData.csv")
 ```
+
+```{r}
+library(MASS)
+fit <- glm(prosperity_score ~ housing_cost + food_cost + transportation_cost + healthcare_cost +
+      other_necessities_cost + childcare_cost + taxes, family = "gaussian", data = model_df)
+
+stepAIC(fit)
+
+anova(fit)
+summary(fit)
+
+library(rsq)
+rsq.partial(fit)
+
+library(car)
+vif(fit)
+
+library(glmnet)
+x <- model.matrix(prosperity_score ~ housing_cost + food_cost + transportation_cost +
+                  healthcare_cost + other_necessities_cost + childcare_cost + taxes, model_df)[,-1]
+y <- model_df$prosperity_score
+cvfit <- cv.glmnet(x, y, alpha = 0)
+plot(cvfit)
+coef(cvfit, s = "lambda.min")
+```
+
 
 XGBoost Model
 ```{r}
@@ -187,6 +221,48 @@ results_df <- predict(final_fit, test) |>
     difference = predicted_prosperity_score - prosperity_score
   )
 ```
+
+
+
+```{r}
+final_csv <- afford_df |> 
+  mutate(highFood = .3 * food_cost,
+         low_transport = -.1 * transportation_cost,
+         preExistingHealth = .2 * healthcare_cost) |> 
+  select(-median_family_income, -state, -case_id, -areaname) |> 
+  filter(family_member_count != "1p4c" & family_member_count != "2p4c") |> 
+  mutate(
+    YYY = total_cost + highFood + low_transport + preExistingHealth,
+    YYN = total_cost + highFood + low_transport,
+    YNY = total_cost + highFood + preExistingHealth,
+    NYY = total_cost + low_transport + preExistingHealth,
+    YNN = total_cost + highFood,
+    NYN = total_cost + low_transport,
+    NNY = total_cost + preExistingHealth,
+    NNN = total_cost
+  ) |> 
+  select(county, isMetro, family_member_count, YYY, YYN, YNY, NYY, YNN, NYN, NNY, NNN) |> 
+  mutate(
+    numKids = substr(family_member_count, 3, 3),
+    numAdults = substr(family_member_count, 1, 1)
+  ) |> 
+  select(-family_member_count) |>
+  pivot_longer(
+    cols = c(YYY, YYN, YNY, NYY, YNN, NYN, NNY, NNN),
+    names_to   = c("Q1", "Q2", "Q3"),
+    names_pattern = "(.)(.)(.)",
+    values_to  = "Value"
+  ) |> 
+  group_by(numKids, numAdults, Q1, Q2, Q3) |> 
+  mutate(
+    z_score = (Value - mean(Value, na.rm = TRUE)) / sd(Value, na.rm = TRUE)
+  ) |> 
+  ungroup() |> 
+  select(-Value)
+
+write_csv(final_csv, "affordabilityScores.csv")
+```
+
 
 
 
