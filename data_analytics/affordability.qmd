@@ -249,11 +249,11 @@ final_csv <- afford_df |>
   select(-family_member_count) |>
   pivot_longer(
     cols = c(YYY, YYN, YNY, NYY, YNN, NYN, NNY, NNN),
-    names_to   = c("Q1", "Q2", "Q3"),
+    names_to   = c("HighFood", "LowTransportation", "HighHealthConditions"),
     names_pattern = "(.)(.)(.)",
     values_to  = "Value"
   ) |> 
-  group_by(numKids, numAdults, Q1, Q2, Q3) |> 
+  group_by(numKids, numAdults, HighFood, LowTransportation, HighHealthConditions) |> 
   mutate(
     z_score = (Value - mean(Value, na.rm = TRUE)) / sd(Value, na.rm = TRUE)
   ) |> 
