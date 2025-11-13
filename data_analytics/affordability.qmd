@@ -151,7 +151,7 @@ split <- initial_split(model_df, prop = .8)
 train <- training(split)
 test <- testing(split)
 
-rec <- train_data |> 
+rec <- train |> 
   recipe(prosperity_score ~ .) |> 
   step_rm(county) |> 
   step_normalize(all_numeric_predictors()) |> 
@@ -229,7 +229,7 @@ final_csv <- afford_df |>
   mutate(highFood = .3 * food_cost,
          low_transport = -.1 * transportation_cost,
          preExistingHealth = .2 * healthcare_cost) |> 
-  select(-median_family_income, -state, -case_id, -areaname) |> 
+  select(-median_family_income, -case_id, -areaname) |> 
   filter(family_member_count != "1p4c" & family_member_count != "2p4c") |> 
   mutate(
     YYY = total_cost + highFood + low_transport + preExistingHealth,
@@ -241,7 +241,7 @@ final_csv <- afford_df |>
     NNY = total_cost + preExistingHealth,
     NNN = total_cost
   ) |> 
-  select(county, isMetro, family_member_count, YYY, YYN, YNY, NYY, YNN, NYN, NNY, NNN) |> 
+  select(state, county, isMetro, family_member_count, YYY, YYN, YNY, NYY, YNN, NYN, NNY, NNN) |> 
   mutate(
     numKids = substr(family_member_count, 3, 3),
     numAdults = substr(family_member_count, 1, 1)
@@ -255,10 +255,22 @@ final_csv <- afford_df |>
   ) |> 
   group_by(numKids, numAdults, HighFood, LowTransportation, HighHealthConditions) |> 
   mutate(
-    z_score = (Value - mean(Value, na.rm = TRUE)) / sd(Value, na.rm = TRUE)
+    affordability_score = (Value - mean(Value, na.rm = TRUE)) / sd(Value, na.rm = TRUE)
   ) |> 
   ungroup() |> 
   select(-Value)
+
+final_csv <- final_csv |> 
+  mutate(
+    county_combined = str_replace(county, "(?i)\\s+(c|ci|cit)$", " city"),
+    county_combined = str_remove(county_combined, "\\s+(County|Count|Coun|Cou|Co|C|P|Pa|Par|Pari|Paris|Parish)$"),
+    county_combined = paste(county_combined, state)
+  ) |> 
+  select(-county) |> 
+  rename(county = county_combined) |> 
+  left_join(prosperity_scores, by = "county") |>
+  select(-state) |> 
+  select(county, isMetro, numKids, numAdults, HighFood, LowTransportation, HighHealthConditions, affordability_score, prosperity_score)
 
 write_csv(final_csv, "affordabilityScores.csv")
 ```
