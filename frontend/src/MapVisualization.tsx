@@ -33,7 +33,6 @@ interface MapVisualizationProps {
     LowTransportation: boolean
     HighHealthConditions: boolean
   }
-  triggerUpdate?: boolean
 }
 
 // Component to update map bounds when data changes
@@ -50,7 +49,7 @@ function MapUpdater() {
   return null
 }
 
-export default function MapVisualization({ scoreType, formData, triggerUpdate }: MapVisualizationProps) {
+export default function MapVisualization({ scoreType, formData }: MapVisualizationProps) {
   const [geoJsonData, setGeoJsonData] = useState<FeatureCollection | null>(null)
   const [countyScores, setCountyScores] = useState<Map<string, CountyData>>(new Map())
   const [loading, setLoading] = useState(true)
@@ -122,11 +121,9 @@ export default function MapVisualization({ scoreType, formData, triggerUpdate }:
     loadCSVData()
   }, [])
 
-  // Filter and process CSV data based on form inputs - only when calculate button is pressed
+  // Filter and process CSV data based on form inputs - updates in real-time
   useEffect(() => {
     if (allCSVData.length === 0) return
-    // Only calculate when triggerUpdate changes (button is pressed)
-    if (triggerUpdate === undefined) return
 
     // Filter rows that match the exact form criteria
     const matchingRows = allCSVData.filter((row) => {
@@ -171,7 +168,7 @@ export default function MapVisualization({ scoreType, formData, triggerUpdate }:
     
     setCountyScores(scoresMap)
     setHasCalculated(true)
-  }, [allCSVData, formData, triggerUpdate])
+  }, [allCSVData, formData])
 
   // Helper function to normalize county names for matching
   const normalizeCountyName = (name: string): string => {

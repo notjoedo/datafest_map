@@ -23,8 +23,6 @@ function App() {
     LowTransportation: false,
     HighHealthConditions: false,
   })
-  const [shouldCalculate, setShouldCalculate] = useState(false)
-
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -37,16 +35,6 @@ function App() {
         type === 'checkbox' ? checked : type === 'number' ? Number(value) : value,
     }))
   }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('Form submitted:', { ...formData, scoreType })
-    // Trigger map recalculation
-    setShouldCalculate((prev) => !prev)
-  }
-
-  const scoreTypeLabel =
-    scoreType === 'affordability' ? 'Affordability' : 'Prosperity'
 
   return (
     <div className="app-container">
@@ -68,7 +56,7 @@ function App() {
             Prosperity Score
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="affordability-form">
+        <div className="affordability-form">
           <div className="form-section-header">
             <h2>Household Information</h2>
           </div>
@@ -148,18 +136,13 @@ function App() {
               </label>
             </div>
           </div>
-
-          <button type="submit" className="submit-button">
-            Calculate {scoreTypeLabel} Score
-          </button>
-        </form>
+        </div>
       </div>
 
       <div className="map-section">
         <MapVisualization 
           scoreType={scoreType} 
-          formData={formData} 
-          triggerUpdate={shouldCalculate}
+          formData={formData}
         />
       </div>
     </div>
