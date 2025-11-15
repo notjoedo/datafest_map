@@ -298,18 +298,21 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     const maxScore = 2
     const normalized = Math.max(0, Math.min(1, (score - minScore) / (maxScore - minScore)))
     
-    // Orange gradient for both scales - Claude theme
-    if (scoreType === 'prosperity') {
-      // Darker orange (low) to lighter orange (high)
-      const r = Math.floor(217 + normalized * (251 - 217))
-      const g = Math.floor(119 + normalized * (146 - 119))
-      const b = Math.floor(6 + normalized * (60 - 6))
+    // Red (low) to green (high) gradient for both scales
+    // Red: rgb(220, 38, 38) -> Yellow: rgb(234, 179, 8) -> Green: rgb(34, 197, 94)
+    if (normalized < 0.5) {
+      // Red to yellow (first half)
+      const t = normalized * 2 // 0 to 1
+      const r = Math.floor(220 + t * (234 - 220))
+      const g = Math.floor(38 + t * (179 - 38))
+      const b = Math.floor(38 + t * (8 - 38))
       return `rgb(${r}, ${g}, ${b})`
     } else {
-      // Red-orange (low affordability) to lighter orange (high affordability)
-      const r = Math.floor(234 + normalized * (251 - 234))
-      const g = Math.floor(88 + normalized * (146 - 88))
-      const b = Math.floor(12 + normalized * (60 - 12))
+      // Yellow to green (second half)
+      const t = (normalized - 0.5) * 2 // 0 to 1
+      const r = Math.floor(234 + t * (34 - 234))
+      const g = Math.floor(179 + t * (197 - 179))
+      const b = Math.floor(8 + t * (94 - 8))
       return `rgb(${r}, ${g}, ${b})`
     }
   }
@@ -485,10 +488,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
             style={{
               width: '100px',
               height: '10px',
-              background:
-                scoreType === 'affordability'
-                  ? 'linear-gradient(to right, rgb(234, 88, 12), rgb(251, 146, 60))'
-                  : 'linear-gradient(to right, rgb(217, 119, 6), rgb(251, 146, 60))',
+              background: 'linear-gradient(to right, rgb(220, 38, 38), rgb(234, 179, 8), rgb(34, 197, 94))',
               borderRadius: '999px',
               boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.1)',
             }}
