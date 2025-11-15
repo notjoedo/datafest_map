@@ -73,12 +73,14 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
   useEffect(() => {
     const loadCSVData = async () => {
       try {
+        console.log('Loading CSV from:', affordabilityScoresCSV)
         // Use the imported CSV URL
         const response = await fetch(affordabilityScoresCSV)
         if (!response.ok) {
           throw new Error(`Failed to load CSV: ${response.status} ${response.statusText}`)
         }
         const text = await response.text()
+        console.log('CSV loaded successfully, length:', text.length)
         const lines = text.split('\n').slice(1) // Skip header
         
         const data: typeof allCSVData = []
@@ -107,11 +109,12 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
           })
         })
         
+        console.log('Parsed CSV rows:', data.length)
         setAllCSVData(data)
         setLoading(false)
       } catch (err) {
         console.error('Error loading CSV:', err)
-        setError('Failed to load data')
+        setError(`Failed to load data: ${err instanceof Error ? err.message : 'Unknown error'}`)
         setLoading(false)
       }
     }
