@@ -290,7 +290,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
 
   // Color scale function - analyze score distribution
   const getColor = (score: number): string => {
-    if (score === 0) return '#e2e8f0' // Gray for no data
+    if (score === 0) return '#e8e3d8' // Cream gray for no data
     
     // Based on CSV data, scores range roughly from -1 to 2
     // Normalize to 0-1 range for better color distribution
@@ -298,18 +298,18 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     const maxScore = 2
     const normalized = Math.max(0, Math.min(1, (score - minScore) / (maxScore - minScore)))
     
-    // Blue to green color scale for prosperity, red to yellow/green for affordability
+    // Orange gradient for both scales - Claude theme
     if (scoreType === 'prosperity') {
-      // Blue (low) to green (high) - prosperity scale
-      const r = Math.floor(59 + normalized * (34 - 59))
-      const g = Math.floor(130 + normalized * (197 - 130))
-      const b = Math.floor(246 + normalized * (94 - 246))
+      // Darker orange (low) to lighter orange (high)
+      const r = Math.floor(217 + normalized * (251 - 217))
+      const g = Math.floor(119 + normalized * (146 - 119))
+      const b = Math.floor(6 + normalized * (60 - 6))
       return `rgb(${r}, ${g}, ${b})`
     } else {
-      // Red (low affordability) to yellow/green (high affordability)
-      const r = Math.floor(239 + normalized * (34 - 239))
-      const g = Math.floor(68 + normalized * (197 - 68))
-      const b = Math.floor(68 + normalized * (94 - 68))
+      // Red-orange (low affordability) to lighter orange (high affordability)
+      const r = Math.floor(234 + normalized * (251 - 234))
+      const g = Math.floor(88 + normalized * (146 - 88))
+      const b = Math.floor(12 + normalized * (60 - 12))
       return `rgb(${r}, ${g}, ${b})`
     }
   }
@@ -329,7 +329,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     return {
       fillColor: getColor(score),
       fillOpacity: score === 0 ? 0.4 : 0.8,
-      color: '#e2e8f0',
+      color: '#e8e3d8',
       weight: 0.5,
       opacity: 0.6,
     }
@@ -349,15 +349,15 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     const otherScoreValue = scoreType === 'affordability' ? prosperityScore : affordabilityScore
     
     const tooltipContent = score === 0 
-      ? `<div style="font-weight: 700; font-size: 17px; color: #0f172a; margin-bottom: 6px;">${countyName}</div><div style="color: #64748b; font-size: 14px;">No data available</div>`
-      : `<div style="font-weight: 700; font-size: 17px; color: #0f172a; margin-bottom: 10px; line-height: 1.3;">${countyName}</div>
-         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: ${scoreType === 'affordability' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)'}; border-radius: 10px; margin-bottom: 8px; border: 1.5px solid ${scoreType === 'affordability' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)'};">
-           <span style="font-weight: 700; font-size: 14px; color: #0f172a;">${currentScoreName}</span>
-           <span style="color: ${scoreType === 'affordability' ? '#ef4444' : '#3b82f6'}; font-weight: 700; font-size: 17px;">${currentScoreValue.toFixed(2)}</span>
+      ? `<div style="font-weight: 700; font-size: 17px; color: #2b2520; margin-bottom: 6px;">${countyName}</div><div style="color: #6b5d52; font-size: 14px;">No data available</div>`
+      : `<div style="font-weight: 700; font-size: 17px; color: #2b2520; margin-bottom: 10px; line-height: 1.3;">${countyName}</div>
+         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(234, 88, 12, 0.1); border-radius: 10px; margin-bottom: 8px; border: 1.5px solid rgba(234, 88, 12, 0.2);">
+           <span style="font-weight: 700; font-size: 14px; color: #2b2520;">${currentScoreName}</span>
+           <span style="color: #ea580c; font-weight: 700; font-size: 17px;">${currentScoreValue.toFixed(2)}</span>
          </div>
-         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(241, 245, 249, 0.8); border-radius: 10px; border: 1.5px solid rgba(203, 213, 225, 0.5);">
-           <span style="font-weight: 600; font-size: 14px; color: #0f172a;">${otherScoreName}</span>
-           <span style="color: #0f172a; font-weight: 700; font-size: 17px;">${otherScoreValue.toFixed(2)}</span>
+         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(245, 241, 232, 0.8); border-radius: 10px; border: 1.5px solid rgba(232, 227, 216, 0.8);">
+           <span style="font-weight: 600; font-size: 14px; color: #2b2520;">${otherScoreName}</span>
+           <span style="color: #2b2520; font-weight: 700; font-size: 17px;">${otherScoreValue.toFixed(2)}</span>
          </div>`
     
     layer.bindTooltip(
@@ -379,7 +379,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
         layer.setStyle({
           fillColor: getColor(score),
           fillOpacity: score === 0 ? 0.6 : 0.95,
-          color: '#0f172a',
+          color: '#ea580c',
           weight: 2,
           opacity: 1,
         })
@@ -392,7 +392,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
         layer.setStyle({
           fillColor: getColor(score),
           fillOpacity: score === 0 ? 0.4 : 0.8,
-          color: '#e2e8f0',
+          color: '#e8e3d8',
           weight: 0.5,
           opacity: 0.6,
         })
@@ -439,11 +439,16 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
         zoom={4}
         style={{ height: '100%', width: '100%', zIndex: 0, minHeight: 0 }}
         scrollWheelZoom={true}
+        zoomControl={true}
       >
         <MapUpdater />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
+          minZoom={2}
+          crossOrigin="anonymous"
+          errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
         />
         {geoJsonData && countyScores.size > 0 && (
           <GeoJSON
@@ -459,36 +464,36 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
           position: 'absolute',
           bottom: '24px',
           left: '24px',
-          background: 'rgba(255, 255, 255, 0.95)',
+          background: 'rgba(254, 253, 251, 0.95)',
           padding: '14px 18px',
           borderRadius: '16px',
-          color: '#0f172a',
+          color: '#2b2520',
           fontSize: '0.875rem',
           zIndex: 1000,
-          border: '1px solid rgba(15, 23, 42, 0.1)',
-          boxShadow: '0 10px 24px rgba(15, 23, 42, 0.2), 0 2px 6px rgba(15, 23, 42, 0.1)',
+          border: '1px solid #e8e3d8',
+          boxShadow: '0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         }}
       >
-        <div style={{ fontWeight: 700, marginBottom: '10px', fontSize: '0.9rem', letterSpacing: '-0.01em' }}>
+        <div style={{ fontWeight: 700, marginBottom: '10px', fontSize: '0.9rem', letterSpacing: '-0.01em', color: '#2b2520' }}>
           {scoreType === 'affordability' ? 'Affordability' : 'Prosperity'} Score
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Low</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6b5d52' }}>Low</span>
           <div
             style={{
               width: '100px',
               height: '10px',
               background:
                 scoreType === 'affordability'
-                  ? 'linear-gradient(to right, rgb(239, 68, 68), rgb(34, 197, 94))'
-                  : 'linear-gradient(to right, rgb(59, 130, 246), rgb(34, 197, 94))',
+                  ? 'linear-gradient(to right, rgb(234, 88, 12), rgb(251, 146, 60))'
+                  : 'linear-gradient(to right, rgb(217, 119, 6), rgb(251, 146, 60))',
               borderRadius: '999px',
               boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.1)',
             }}
           />
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>High</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6b5d52' }}>High</span>
         </div>
       </div>
     </div>

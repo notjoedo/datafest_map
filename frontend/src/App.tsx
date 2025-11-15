@@ -24,6 +24,8 @@ function App() {
     HighHealthConditions: false,
   })
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showQuestionnaire, setShowQuestionnaire] = useState(true)
+  const [showMap, setShowMap] = useState(false)
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -33,115 +35,208 @@ function App() {
     setFormData((prev) => ({
       ...prev,
       [name]:
-        type === 'checkbox' ? checked : type === 'number' ? Number(value) : value,
+        type === 'checkbox' ? checked : 
+        (name === 'numKids' || name === 'numAdults') ? Number(value) : 
+        value,
     }))
+  }
+
+  const handleQuestionnaireSubmit = () => {
+    setShowQuestionnaire(false)
+    setShowMap(true)
+  }
+
+  if (showQuestionnaire) {
+    return (
+      <div className="questionnaire-container">
+        <div className="questionnaire-panel">
+          <h1>Questionnaire</h1>
+          <div className="questionnaire-form">
+            <div className="question-group">
+              <label className="question-label">Do you have a partner?</label>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="numAdults"
+                    value="1"
+                    checked={formData.numAdults === 1}
+                    onChange={handleInputChange}
+                  />
+                  <span>No</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="numAdults"
+                    value="2"
+                    checked={formData.numAdults === 2}
+                    onChange={handleInputChange}
+                  />
+                  <span>Yes</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="question-group">
+              <label className="question-label">How many kids do you have?</label>
+              <div className="radio-group">
+                {[0, 1, 2, 3].map((num) => (
+                  <label key={num} className="radio-option">
+                    <input
+                      type="radio"
+                      name="numKids"
+                      value={num}
+                      checked={formData.numKids === num}
+                      onChange={handleInputChange}
+                    />
+                    <span>{num === 3 ? '3+' : num}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="question-group">
+              <label className="question-label">Do you have preexisting health conditions?</label>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="HighHealthConditions"
+                    value="no"
+                    checked={formData.HighHealthConditions === false}
+                    onChange={(e) => setFormData(prev => ({ ...prev, HighHealthConditions: false }))}
+                  />
+                  <span>No</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="HighHealthConditions"
+                    value="yes"
+                    checked={formData.HighHealthConditions === true}
+                    onChange={(e) => setFormData(prev => ({ ...prev, HighHealthConditions: true }))}
+                  />
+                  <span>Yes</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="question-group">
+              <label className="question-label">How many times do you eat out a week?</label>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="HighFood"
+                    value="low"
+                    checked={formData.HighFood === false}
+                    onChange={(e) => setFormData(prev => ({ ...prev, HighFood: false }))}
+                  />
+                  <span>0-4 times</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="HighFood"
+                    value="high"
+                    checked={formData.HighFood === true}
+                    onChange={(e) => setFormData(prev => ({ ...prev, HighFood: true }))}
+                  />
+                  <span>More than 4</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="question-group">
+              <label className="question-label">How often do you take public transit?</label>
+              <div className="radio-group-vertical">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="LowTransportation"
+                    value="low"
+                    checked={formData.LowTransportation === true}
+                    onChange={(e) => setFormData(prev => ({ ...prev, LowTransportation: true }))}
+                  />
+                  <span>Never or Occasionally</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="LowTransportation"
+                    value="high"
+                    checked={formData.LowTransportation === false}
+                    onChange={(e) => setFormData(prev => ({ ...prev, LowTransportation: false }))}
+                  />
+                  <span>Often or Primary Method</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="question-group">
+              <label className="question-label">Do you only want metro areas?</label>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="isMetro"
+                    value="no"
+                    checked={formData.isMetro === false}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isMetro: false }))}
+                  />
+                  <span>No</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="isMetro"
+                    value="yes"
+                    checked={formData.isMetro === true}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isMetro: true }))}
+                  />
+                  <span>Yes</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="score-type-selector">
+              <label className="question-label">What matters most to you?</label>
+              <div className="radio-group">
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="scoreType"
+                    value="affordability"
+                    checked={scoreType === 'affordability'}
+                    onChange={() => setScoreType('affordability')}
+                  />
+                  <span>Affordability</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="scoreType"
+                    value="prosperity"
+                    checked={scoreType === 'prosperity'}
+                    onChange={() => setScoreType('prosperity')}
+                  />
+                  <span>Prosperity</span>
+                </label>
+              </div>
+            </div>
+
+            <button className="submit-questionnaire" onClick={handleQuestionnaireSubmit}>
+              View Results
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="app-container">
-      <div className={`form-panel ${sidebarOpen ? 'open' : ''}`}>
-        <div className="form-section">
-          <h1>Score Calculator</h1>
-          <div className="tabs-container">
-            <button
-              type="button"
-              className={`tab-button ${scoreType === 'affordability' ? 'active' : ''}`}
-              onClick={() => setScoreType('affordability')}
-            >
-              Affordability Score
-            </button>
-            <button
-              type="button"
-              className={`tab-button ${scoreType === 'prosperity' ? 'active' : ''}`}
-              onClick={() => setScoreType('prosperity')}
-            >
-              Prosperity Score
-            </button>
-          </div>
-          <div className="affordability-form">
-            <div className="form-section-header">
-              <h2>Household Information</h2>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="numAdults">Number of Adults</label>
-                <input
-                  type="number"
-                  id="numAdults"
-                  name="numAdults"
-                  value={formData.numAdults}
-                  onChange={handleInputChange}
-                  min="1"
-                  max="2"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="numKids">Number of Kids</label>
-                <input
-                  type="number"
-                  id="numKids"
-                  name="numKids"
-                  value={formData.numKids}
-                  onChange={handleInputChange}
-                  min="0"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-section-divider"></div>
-
-            <div className="form-section-header">
-              <h2>Location & Lifestyle Factors</h2>
-            </div>
-
-            <div className="form-group checkbox-group">
-              <div className="checkbox-options">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="isMetro"
-                    checked={formData.isMetro}
-                    onChange={handleInputChange}
-                  />
-                  Metro Area
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    name="HighFood"
-                    checked={formData.HighFood}
-                    onChange={handleInputChange}
-                  />
-                  High Food Costs
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    name="LowTransportation"
-                    checked={formData.LowTransportation}
-                    onChange={handleInputChange}
-                  />
-                  Low Transportation Costs
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    name="HighHealthConditions"
-                    checked={formData.HighHealthConditions}
-                    onChange={handleInputChange}
-                  />
-                  High Health Conditions
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div className="map-section">
         <MapVisualization 
           scoreType={scoreType} 
@@ -151,11 +246,13 @@ function App() {
 
       <button
         type="button"
-        className="panel-toggle"
-        onClick={() => setSidebarOpen((prev) => !prev)}
-        aria-expanded={sidebarOpen}
+        className="back-to-questionnaire"
+        onClick={() => {
+          setShowQuestionnaire(true)
+          setShowMap(false)
+        }}
       >
-        {sidebarOpen ? 'Hide filters' : 'Show filters'}
+        ← Back to Questionnaire
       </button>
     </div>
   )
