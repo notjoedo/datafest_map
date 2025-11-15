@@ -23,9 +23,8 @@ function App() {
     LowTransportation: false,
     HighHealthConditions: false,
   })
-  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showQuestionnaire, setShowQuestionnaire] = useState(true)
-  const [showMap, setShowMap] = useState(false)
+  
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -43,7 +42,6 @@ function App() {
 
   const handleQuestionnaireSubmit = () => {
     setShowQuestionnaire(false)
-    setShowMap(true)
   }
 
   if (showQuestionnaire) {
@@ -105,7 +103,7 @@ function App() {
                     name="HighHealthConditions"
                     value="no"
                     checked={formData.HighHealthConditions === false}
-                    onChange={(e) => setFormData(prev => ({ ...prev, HighHealthConditions: false }))}
+                    onChange={() => setFormData(prev => ({ ...prev, HighHealthConditions: false }))}
                   />
                   <span>No</span>
                 </label>
@@ -115,7 +113,7 @@ function App() {
                     name="HighHealthConditions"
                     value="yes"
                     checked={formData.HighHealthConditions === true}
-                    onChange={(e) => setFormData(prev => ({ ...prev, HighHealthConditions: true }))}
+                    onChange={() => setFormData(prev => ({ ...prev, HighHealthConditions: true }))}
                   />
                   <span>Yes</span>
                 </label>
@@ -131,7 +129,7 @@ function App() {
                     name="HighFood"
                     value="low"
                     checked={formData.HighFood === false}
-                    onChange={(e) => setFormData(prev => ({ ...prev, HighFood: false }))}
+                    onChange={() => setFormData(prev => ({ ...prev, HighFood: false }))}
                   />
                   <span>0-4 times</span>
                 </label>
@@ -141,7 +139,7 @@ function App() {
                     name="HighFood"
                     value="high"
                     checked={formData.HighFood === true}
-                    onChange={(e) => setFormData(prev => ({ ...prev, HighFood: true }))}
+                    onChange={() => setFormData(prev => ({ ...prev, HighFood: true }))}
                   />
                   <span>More than 4</span>
                 </label>
@@ -157,7 +155,7 @@ function App() {
                     name="LowTransportation"
                     value="low"
                     checked={formData.LowTransportation === true}
-                    onChange={(e) => setFormData(prev => ({ ...prev, LowTransportation: true }))}
+                    onChange={() => setFormData(prev => ({ ...prev, LowTransportation: true }))}
                   />
                   <span>Never or Occasionally</span>
                 </label>
@@ -167,7 +165,7 @@ function App() {
                     name="LowTransportation"
                     value="high"
                     checked={formData.LowTransportation === false}
-                    onChange={(e) => setFormData(prev => ({ ...prev, LowTransportation: false }))}
+                    onChange={() => setFormData(prev => ({ ...prev, LowTransportation: false }))}
                   />
                   <span>Often or Primary Method</span>
                 </label>
@@ -183,7 +181,7 @@ function App() {
                     name="isMetro"
                     value="no"
                     checked={formData.isMetro === false}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isMetro: false }))}
+                    onChange={() => setFormData(prev => ({ ...prev, isMetro: false }))}
                   />
                   <span>Rural Only</span>
                 </label>
@@ -193,7 +191,7 @@ function App() {
                     name="isMetro"
                     value="yes"
                     checked={formData.isMetro === true}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isMetro: true }))}
+                    onChange={() => setFormData(prev => ({ ...prev, isMetro: true }))}
                   />
                   <span>Metro Only</span>
                 </label>
@@ -203,7 +201,7 @@ function App() {
                     name="isMetro"
                     value="both"
                     checked={formData.isMetro === null}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isMetro: null }))}
+                    onChange={() => setFormData(prev => ({ ...prev, isMetro: null }))}
                   />
                   <span>Both</span>
                 </label>
@@ -269,7 +267,6 @@ function App() {
         className="back-to-questionnaire"
         onClick={() => {
           setShowQuestionnaire(true)
-          setShowMap(false)
         }}
       >
         ← Back to Questionnaire
