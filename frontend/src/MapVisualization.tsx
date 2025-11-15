@@ -320,18 +320,18 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
       return {
         fillColor: '#e2e8f0',
         fillOpacity: 0.3,
-        color: '#ffffff',
+        color: '#cbd5e1',
         weight: 0.5,
-        opacity: 0.5,
+        opacity: 0.4,
       }
     }
     const score = feature.properties?.score || 0
     return {
       fillColor: getColor(score),
-      fillOpacity: score === 0 ? 0.3 : 0.7,
-      color: '#ffffff',
+      fillOpacity: score === 0 ? 0.4 : 0.8,
+      color: '#e2e8f0',
       weight: 0.5,
-      opacity: 0.5,
+      opacity: 0.6,
     }
   }
 
@@ -343,11 +343,22 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     const prosperityScore = feature.properties?.prosperityScore || 0
     
     // Create tooltip with both scores, highlighting the current one
+    const currentScoreName = scoreType === 'affordability' ? 'Affordability' : 'Prosperity'
+    const currentScoreValue = scoreType === 'affordability' ? affordabilityScore : prosperityScore
+    const otherScoreName = scoreType === 'affordability' ? 'Prosperity' : 'Affordability'
+    const otherScoreValue = scoreType === 'affordability' ? prosperityScore : affordabilityScore
+    
     const tooltipContent = score === 0 
-      ? `<div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${countyName}</div><div style="color: #94a3b8; font-size: 12px;">No data available</div>`
-      : `<div style="font-weight: 600; font-size: 14px; margin-bottom: 6px;">${countyName}</div>
-         <div style="margin-bottom: 4px;"><span style="font-weight: 600;">Affordability:</span> <span style="color: ${scoreType === 'affordability' ? '#3b82f6' : '#94a3b8'}; font-weight: ${scoreType === 'affordability' ? '700' : '400'}">${affordabilityScore.toFixed(3)}</span></div>
-         <div><span style="font-weight: 600;">Prosperity:</span> <span style="color: ${scoreType === 'prosperity' ? '#3b82f6' : '#94a3b8'}; font-weight: ${scoreType === 'prosperity' ? '700' : '400'}">${prosperityScore.toFixed(3)}</span></div>`
+      ? `<div style="font-weight: 700; font-size: 17px; color: #0f172a; margin-bottom: 6px;">${countyName}</div><div style="color: #64748b; font-size: 14px;">No data available</div>`
+      : `<div style="font-weight: 700; font-size: 17px; color: #0f172a; margin-bottom: 10px; line-height: 1.3;">${countyName}</div>
+         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: ${scoreType === 'affordability' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)'}; border-radius: 10px; margin-bottom: 8px; border: 1.5px solid ${scoreType === 'affordability' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)'};">
+           <span style="font-weight: 700; font-size: 14px; color: #0f172a;">${currentScoreName}</span>
+           <span style="color: ${scoreType === 'affordability' ? '#ef4444' : '#3b82f6'}; font-weight: 700; font-size: 17px;">${currentScoreValue.toFixed(2)}</span>
+         </div>
+         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(241, 245, 249, 0.8); border-radius: 10px; border: 1.5px solid rgba(203, 213, 225, 0.5);">
+           <span style="font-weight: 600; font-size: 14px; color: #0f172a;">${otherScoreName}</span>
+           <span style="color: #0f172a; font-weight: 700; font-size: 17px;">${otherScoreValue.toFixed(2)}</span>
+         </div>`
     
     layer.bindTooltip(
       tooltipContent,
@@ -367,10 +378,10 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
         // Preserve the original fill color, just enhance the border and opacity
         layer.setStyle({
           fillColor: getColor(score),
-          fillOpacity: score === 0 ? 0.5 : 0.9,
-          color: '#1e293b',
-          weight: 2.5,
-          opacity: 0.9,
+          fillOpacity: score === 0 ? 0.6 : 0.95,
+          color: '#0f172a',
+          weight: 2,
+          opacity: 1,
         })
         layer.openTooltip()
       },
@@ -380,10 +391,10 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
         // Reset to original style, preserving the score-based color
         layer.setStyle({
           fillColor: getColor(score),
-          fillOpacity: score === 0 ? 0.3 : 0.7,
-          color: '#ffffff',
+          fillOpacity: score === 0 ? 0.4 : 0.8,
+          color: '#e2e8f0',
           weight: 0.5,
-          opacity: 0.5,
+          opacity: 0.6,
         })
         layer.closeTooltip()
       },
@@ -446,34 +457,38 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
       <div
         style={{
           position: 'absolute',
-          bottom: '20px',
-          left: '20px',
-          background: 'rgba(30, 41, 59, 0.9)',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          color: 'white',
+          bottom: '24px',
+          left: '24px',
+          background: 'rgba(255, 255, 255, 0.95)',
+          padding: '14px 18px',
+          borderRadius: '16px',
+          color: '#0f172a',
           fontSize: '0.875rem',
           zIndex: 1000,
-          border: '1px solid rgba(148, 163, 184, 0.3)',
+          border: '1px solid rgba(15, 23, 42, 0.1)',
+          boxShadow: '0 10px 24px rgba(15, 23, 42, 0.2), 0 2px 6px rgba(15, 23, 42, 0.1)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
         }}
       >
-        <div style={{ fontWeight: 600, marginBottom: '8px' }}>
+        <div style={{ fontWeight: 700, marginBottom: '10px', fontSize: '0.9rem', letterSpacing: '-0.01em' }}>
           {scoreType === 'affordability' ? 'Affordability' : 'Prosperity'} Score
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span>Low</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Low</span>
           <div
             style={{
-              width: '80px',
-              height: '12px',
+              width: '100px',
+              height: '10px',
               background:
                 scoreType === 'affordability'
                   ? 'linear-gradient(to right, rgb(239, 68, 68), rgb(34, 197, 94))'
                   : 'linear-gradient(to right, rgb(59, 130, 246), rgb(34, 197, 94))',
-              borderRadius: '4px',
+              borderRadius: '999px',
+              boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.1)',
             }}
           />
-          <span>High</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>High</span>
         </div>
       </div>
     </div>

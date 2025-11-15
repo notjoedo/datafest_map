@@ -23,6 +23,7 @@ function App() {
     LowTransportation: false,
     HighHealthConditions: false,
   })
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -38,102 +39,104 @@ function App() {
 
   return (
     <div className="app-container">
-      <div className="form-section">
-        <h1>Score Calculator</h1>
-        <div className="tabs-container">
-          <button
-            type="button"
-            className={`tab-button ${scoreType === 'affordability' ? 'active' : ''}`}
-            onClick={() => setScoreType('affordability')}
-          >
-            Affordability Score
-          </button>
-          <button
-            type="button"
-            className={`tab-button ${scoreType === 'prosperity' ? 'active' : ''}`}
-            onClick={() => setScoreType('prosperity')}
-          >
-            Prosperity Score
-          </button>
-        </div>
-        <div className="affordability-form">
-          <div className="form-section-header">
-            <h2>Household Information</h2>
+      <div className={`form-panel ${sidebarOpen ? 'open' : ''}`}>
+        <div className="form-section">
+          <h1>Score Calculator</h1>
+          <div className="tabs-container">
+            <button
+              type="button"
+              className={`tab-button ${scoreType === 'affordability' ? 'active' : ''}`}
+              onClick={() => setScoreType('affordability')}
+            >
+              Affordability Score
+            </button>
+            <button
+              type="button"
+              className={`tab-button ${scoreType === 'prosperity' ? 'active' : ''}`}
+              onClick={() => setScoreType('prosperity')}
+            >
+              Prosperity Score
+            </button>
           </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label htmlFor="numAdults">Number of Adults</label>
-              <input
-                type="number"
-                id="numAdults"
-                name="numAdults"
-                value={formData.numAdults}
-                onChange={handleInputChange}
-                min="1"
-                max="2"
-                required
-              />
+          <div className="affordability-form">
+            <div className="form-section-header">
+              <h2>Household Information</h2>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="numKids">Number of Kids</label>
-              <input
-                type="number"
-                id="numKids"
-                name="numKids"
-                value={formData.numKids}
-                onChange={handleInputChange}
-                min="0"
-                required
-              />
+            <div className="form-row">
+              <div className="form-group">
+                <label htmlFor="numAdults">Number of Adults</label>
+                <input
+                  type="number"
+                  id="numAdults"
+                  name="numAdults"
+                  value={formData.numAdults}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="2"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="numKids">Number of Kids</label>
+                <input
+                  type="number"
+                  id="numKids"
+                  name="numKids"
+                  value={formData.numKids}
+                  onChange={handleInputChange}
+                  min="0"
+                  required
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="form-section-divider"></div>
+            <div className="form-section-divider"></div>
 
-          <div className="form-section-header">
-            <h2>Location & Lifestyle Factors</h2>
-          </div>
+            <div className="form-section-header">
+              <h2>Location & Lifestyle Factors</h2>
+            </div>
 
-          <div className="form-group checkbox-group">
-            <div className="checkbox-options">
-              <label>
-                <input
-                  type="checkbox"
-                  name="isMetro"
-                  checked={formData.isMetro}
-                  onChange={handleInputChange}
-                />
-                Metro Area
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  name="HighFood"
-                  checked={formData.HighFood}
-                  onChange={handleInputChange}
-                />
-                High Food Costs
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  name="LowTransportation"
-                  checked={formData.LowTransportation}
-                  onChange={handleInputChange}
-                />
-                Low Transportation Costs
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  name="HighHealthConditions"
-                  checked={formData.HighHealthConditions}
-                  onChange={handleInputChange}
-                />
-                High Health Conditions
-              </label>
+            <div className="form-group checkbox-group">
+              <div className="checkbox-options">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="isMetro"
+                    checked={formData.isMetro}
+                    onChange={handleInputChange}
+                  />
+                  Metro Area
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="HighFood"
+                    checked={formData.HighFood}
+                    onChange={handleInputChange}
+                  />
+                  High Food Costs
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="LowTransportation"
+                    checked={formData.LowTransportation}
+                    onChange={handleInputChange}
+                  />
+                  Low Transportation Costs
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="HighHealthConditions"
+                    checked={formData.HighHealthConditions}
+                    onChange={handleInputChange}
+                  />
+                  High Health Conditions
+                </label>
+              </div>
             </div>
           </div>
         </div>
@@ -145,6 +148,15 @@ function App() {
           formData={formData}
         />
       </div>
+
+      <button
+        type="button"
+        className="panel-toggle"
+        onClick={() => setSidebarOpen((prev) => !prev)}
+        aria-expanded={sidebarOpen}
+      >
+        {sidebarOpen ? 'Hide filters' : 'Show filters'}
+      </button>
     </div>
   )
 }
