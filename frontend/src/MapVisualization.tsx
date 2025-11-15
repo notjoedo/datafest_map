@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { FeatureCollection, Feature } from 'geojson'
+import affordabilityScoresCSV from './assets/affordabilityScores.csv?url'
 
 // Fix for default marker icons in React/Webpack
 import icon from 'leaflet/dist/images/marker-icon.png'
@@ -72,13 +73,10 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
   useEffect(() => {
     const loadCSVData = async () => {
       try {
-        // Try multiple possible paths for the CSV
-        let response = await fetch('/src/assets/affordabilityScores.csv').catch(() => null)
-        if (!response || !response.ok) {
-          response = await fetch('/affordabilityScores.csv').catch(() => null)
-        }
-        if (!response || !response.ok) {
-          throw new Error('Could not load CSV file')
+        // Use the imported CSV URL
+        const response = await fetch(affordabilityScoresCSV)
+        if (!response.ok) {
+          throw new Error(`Failed to load CSV: ${response.status} ${response.statusText}`)
         }
         const text = await response.text()
         const lines = text.split('\n').slice(1) // Skip header
