@@ -142,7 +142,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
       const highHealthMatch = row.HighHealthConditions.trim().toUpperCase() === (formData.HighHealthConditions ? 'Y' : 'N')
 
       return (
-        !isMetroMatch &&
+        isMetroMatch &&
         numKidsMatch &&
         numAdultsMatch &&
         highFoodMatch &&
