@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -94,7 +94,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
           const [county, isMetro, numKids, numAdults, HighFood, LowTransportation, HighHealthConditions, affordability_score, prosperity_score] = 
             parts.map(s => s.trim())
           
-          if (!county || county === 'county') return
+          if (!county || county === 'county' || !isMetro || !numKids || !numAdults) return
           
           data.push({
             county,
@@ -127,18 +127,22 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
 
     // Filter rows that match the exact form criteria
     const matchingRows = allCSVData.filter((row) => {
-      // Convert form boolean to CSV string format (TRUE/FALSE for isMetro, Y/N for others)
-      const isMetroMatch = row.isMetro === String(formData.isMetro).toUpperCase()
+      const csvIsMetro = row.isMetro.trim().toUpperCase()
+      const expectedIsMetro = formData.isMetro ? 'TRUE' : 'FALSE'
+      const isMetroMatch = csvIsMetro === expectedIsMetro
       // For numKids: if input is >= 3, use 3 for matching; otherwise use the actual value
       const effectiveNumKids = formData.numKids >= 3 ? 3 : formData.numKids
-      const numKidsMatch = parseInt(row.numKids) === effectiveNumKids
-      const numAdultsMatch = parseInt(row.numAdults) === formData.numAdults
-      const highFoodMatch = row.HighFood === (formData.HighFood ? 'Y' : 'N')
-      const lowTransportMatch = row.LowTransportation === (formData.LowTransportation ? 'Y' : 'N')
-      const highHealthMatch = row.HighHealthConditions === (formData.HighHealthConditions ? 'Y' : 'N')
+      const rowNumKids = parseInt(row.numKids.trim(), 10)
+      const rowNumAdults = parseInt(row.numAdults.trim(), 10)
+      const numKidsMatch = !isNaN(rowNumKids) && rowNumKids === effectiveNumKids
+      const numAdultsMatch = !isNaN(rowNumAdults) && rowNumAdults === formData.numAdults
+      // For Y/N fields: normalize to uppercase for case-insensitive matching
+      const highFoodMatch = row.HighFood.trim().toUpperCase() === (formData.HighFood ? 'Y' : 'N')
+      const lowTransportMatch = row.LowTransportation.trim().toUpperCase() === (formData.LowTransportation ? 'Y' : 'N')
+      const highHealthMatch = row.HighHealthConditions.trim().toUpperCase() === (formData.HighHealthConditions ? 'Y' : 'N')
 
       return (
-        isMetroMatch &&
+        !isMetroMatch &&
         numKidsMatch &&
         numAdultsMatch &&
         highFoodMatch &&
@@ -167,7 +171,10 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     }
     
     setCountyScores(scoresMap)
-    setHasCalculated(true)
+    // Mark as calculated once we've processed the data (even if no matches found)
+    if (allCSVData.length > 0) {
+      setHasCalculated(true)
+    }
   }, [allCSVData, formData])
 
   // Helper function to normalize county names for matching
@@ -180,11 +187,6 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
       .trim()
   }
 
-  // Helper function to extract state abbreviation
-  const getStateAbbrev = (name: string): string => {
-    const parts = name.split(' ')
-    return parts[parts.length - 1] || ''
-  }
 
 
   // Load US counties GeoJSON
@@ -313,7 +315,16 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
   }
 
   // Style function for GeoJSON features
-  const style = (feature: Feature) => {
+  const style = (feature: Feature | undefined) => {
+    if (!feature) {
+      return {
+        fillColor: '#e2e8f0',
+        fillOpacity: 0.3,
+        color: '#ffffff',
+        weight: 0.5,
+        opacity: 0.5,
+      }
+    }
     const score = feature.properties?.score || 0
     return {
       fillColor: getColor(score),
@@ -332,7 +343,6 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     const prosperityScore = feature.properties?.prosperityScore || 0
     
     // Create tooltip with both scores, highlighting the current one
-    const currentScore = scoreType === 'affordability' ? affordabilityScore : prosperityScore
     const tooltipContent = score === 0 
       ? `<div style="font-weight: 600; font-size: 14px; margin-bottom: 4px;">${countyName}</div><div style="color: #94a3b8; font-size: 12px;">No data available</div>`
       : `<div style="font-weight: 600; font-size: 14px; margin-bottom: 6px;">${countyName}</div>
@@ -399,13 +409,13 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     )
   }
 
-  // Show initial state message if no calculation has been performed
-  if (!hasCalculated && countyScores.size === 0) {
+  // Show initial state message if no data has been calculated yet
+  if (!hasCalculated && countyScores.size === 0 && !loading) {
     return (
       <div className="map-placeholder">
-        <p>Ready to calculate scores</p>
+        <p>Map will update as you adjust the form</p>
         <p className="placeholder-subtitle">
-          Fill out the form and click "Calculate {scoreType === 'affordability' ? 'Affordability' : 'Prosperity'} Score" to visualize data on the map
+          Change the form inputs to see {scoreType === 'affordability' ? 'affordability' : 'prosperity'} scores on the map
         </p>
       </div>
     )
