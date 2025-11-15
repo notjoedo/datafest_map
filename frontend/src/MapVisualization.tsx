@@ -310,9 +310,16 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     // Normalize to 0-1 range for better color distribution
     const minScore = -1
     const maxScore = 2
-    const normalized = Math.max(0, Math.min(1, (score - minScore) / (maxScore - minScore)))
+    let normalized = Math.max(0, Math.min(1, (score - minScore) / (maxScore - minScore)))
     
-    // Red (low) to green (high) gradient for both scales
+    // For affordability: higher score = more expensive (bad) = red
+    // For prosperity: higher score = better = green
+    // So flip the normalized value for affordability
+    if (scoreType === 'affordability') {
+      normalized = 1 - normalized
+    }
+    
+    // Red (low) to green (high) gradient
     // Red: rgb(220, 38, 38) -> Yellow: rgb(234, 179, 8) -> Green: rgb(34, 197, 94)
     if (normalized < 0.5) {
       // Red to yellow (first half)
@@ -497,17 +504,23 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
           {scoreType === 'affordability' ? 'Affordability' : 'Prosperity'} Score
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6b5d52' }}>Low</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6b5d52' }}>
+            {scoreType === 'affordability' ? 'More Affordable' : 'Low'}
+          </span>
           <div
             style={{
               width: '100px',
               height: '10px',
-              background: 'linear-gradient(to right, rgb(220, 38, 38), rgb(234, 179, 8), rgb(34, 197, 94))',
+              background: scoreType === 'affordability'
+                ? 'linear-gradient(to right, rgb(34, 197, 94), rgb(234, 179, 8), rgb(220, 38, 38))'
+                : 'linear-gradient(to right, rgb(220, 38, 38), rgb(234, 179, 8), rgb(34, 197, 94))',
               borderRadius: '999px',
               boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.1)',
             }}
           />
-          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6b5d52' }}>High</span>
+          <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6b5d52' }}>
+            {scoreType === 'affordability' ? 'More Expensive' : 'High'}
+          </span>
         </div>
       </div>
     </div>
