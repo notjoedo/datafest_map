@@ -5,7 +5,7 @@ import MapVisualization from './MapVisualization'
 type ScoreType = 'affordability' | 'prosperity'
 
 interface FormData {
-  isMetro: boolean
+  isMetro: boolean | null // null means "both"
   numKids: number
   numAdults: number
   HighFood: boolean
@@ -175,7 +175,7 @@ function App() {
             </div>
 
             <div className="question-group">
-              <label className="question-label">Do you only want metro areas?</label>
+              <label className="question-label">Metro area preference:</label>
               <div className="radio-group">
                 <label className="radio-option">
                   <input
@@ -185,7 +185,7 @@ function App() {
                     checked={formData.isMetro === false}
                     onChange={(e) => setFormData(prev => ({ ...prev, isMetro: false }))}
                   />
-                  <span>No</span>
+                  <span>Rural Only</span>
                 </label>
                 <label className="radio-option">
                   <input
@@ -195,7 +195,17 @@ function App() {
                     checked={formData.isMetro === true}
                     onChange={(e) => setFormData(prev => ({ ...prev, isMetro: true }))}
                   />
-                  <span>Yes</span>
+                  <span>Metro Only</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="isMetro"
+                    value="both"
+                    checked={formData.isMetro === null}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isMetro: null }))}
+                  />
+                  <span>Both</span>
                 </label>
               </div>
             </div>

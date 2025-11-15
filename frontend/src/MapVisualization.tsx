@@ -26,7 +26,7 @@ interface CountyData {
 interface MapVisualizationProps {
   scoreType: 'affordability' | 'prosperity'
   formData: {
-    isMetro: boolean
+    isMetro: boolean | null // null means "both"
     numKids: number
     numAdults: number
     HighFood: boolean
@@ -128,8 +128,11 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     // Filter rows that match the exact form criteria
     const matchingRows = allCSVData.filter((row) => {
       const csvIsMetro = row.isMetro.trim().toUpperCase()
-      const expectedIsMetro = formData.isMetro ? 'TRUE' : 'FALSE'
-      const isMetroMatch = csvIsMetro === expectedIsMetro
+      // If isMetro is null, show both (match any value)
+      // Otherwise, match the specific metro/rural preference
+      const isMetroMatch = formData.isMetro === null 
+        ? true // Show both metro and rural
+        : csvIsMetro === (formData.isMetro ? 'TRUE' : 'FALSE')
       // For numKids: if input is >= 3, use 3 for matching; otherwise use the actual value
       const effectiveNumKids = formData.numKids >= 3 ? 3 : formData.numKids
       const rowNumKids = parseInt(row.numKids.trim(), 10)
@@ -152,20 +155,31 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     })
 
     // Create map with exact scores for each county that matches the form inputs
-    // Each county should have exactly one matching row for the specific input combination
+    // When "Both" is selected (isMetro === null), we may have multiple rows per county (metro and rural)
+    // In that case, we average the scores
     const scoresMap = new Map<string, CountyData>()
+    const countyCounts = new Map<string, number>() // Track how many rows per county for averaging
     
     if (matchingRows.length > 0) {
-      // Use the exact matching row's score for each county
-      // Since each unique combination of inputs has one row per county, we should get one score per county
       matchingRows.forEach((row) => {
-        // If a county already exists (shouldn't happen for exact match, but handle it)
-        if (!scoresMap.has(row.county)) {
+        if (scoresMap.has(row.county)) {
+          // County already exists - average the scores (for "Both" option)
+          const existing = scoresMap.get(row.county)!
+          const count = (countyCounts.get(row.county) || 1) + 1
+          scoresMap.set(row.county, {
+            county: row.county,
+            affordability_score: (existing.affordability_score * (count - 1) + row.affordability_score) / count,
+            prosperity_score: (existing.prosperity_score * (count - 1) + row.prosperity_score) / count,
+          })
+          countyCounts.set(row.county, count)
+        } else {
+          // First row for this county
           scoresMap.set(row.county, {
             county: row.county,
             affordability_score: row.affordability_score,
             prosperity_score: row.prosperity_score,
           })
+          countyCounts.set(row.county, 1)
         }
       })
     }
