@@ -2,7 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import MapVisualization from './MapVisualization'
 
-type ScoreType = 'affordability' | 'prosperity'
+type ScoreType = 'affordability' | 'prosperity' | 'recommendation'
 
 interface FormData {
   isMetro: boolean | null // null means "both"
@@ -232,6 +232,16 @@ function App() {
                     onChange={() => setScoreType('prosperity')}
                   />
                   <span>Prosperity</span>
+                </label>
+                <label className="radio-option">
+                  <input
+                    type="radio"
+                    name="scoreType"
+                    value="recommendation"
+                    checked={scoreType === 'recommendation'}
+                    onChange={() => setScoreType('recommendation')}
+                  />
+                  <span>Recommendation</span>
                 </label>
               </div>
             </div>

@@ -24,7 +24,7 @@ interface CountyData {
 }
 
 interface MapVisualizationProps {
-  scoreType: 'affordability' | 'prosperity'
+  scoreType: 'affordability' | 'prosperity' | 'recommendation'
   formData: {
     isMetro: boolean | null // null means "both"
     numKids: number
@@ -268,7 +268,25 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
           }
           
           // Set score based on current scoreType
-          const score = scoreType === 'affordability' ? affordabilityScore : prosperityScore
+          // For recommendation: average of (inverse normalized affordability + normalized prosperity)
+          let score = 0
+          if (scoreType === 'recommendation') {
+            const minScore = -1
+            const maxScore = 2
+            // Normalize both scores to 0-1 range
+            const normalizedAffordability = Math.max(0, Math.min(1, (affordabilityScore - minScore) / (maxScore - minScore)))
+            const normalizedProsperity = Math.max(0, Math.min(1, (prosperityScore - minScore) / (maxScore - minScore)))
+            // Invert affordability (lower affordability score = more affordable = better)
+            const invertedAffordability = 1 - normalizedAffordability
+            // Average: (inverse affordability + prosperity) / 2
+            const recommendationNormalized = (invertedAffordability + normalizedProsperity) / 2
+            // Scale back to original range for consistent coloring
+            score = recommendationNormalized * (maxScore - minScore) + minScore
+          } else if (scoreType === 'affordability') {
+            score = affordabilityScore
+          } else {
+            score = prosperityScore
+          }
           
           return {
             ...feature,
@@ -314,10 +332,12 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     
     // For affordability: higher score = more expensive (bad) = red
     // For prosperity: higher score = better = green
+    // For recommendation: higher score = better balance = green (already in correct direction)
     // So flip the normalized value for affordability
     if (scoreType === 'affordability') {
       normalized = 1 - normalized
     }
+    // Recommendation scores are already normalized with affordability inverted, so they're already in the right direction
     
     // Red (low) to green (high) gradient
     // Red: rgb(220, 38, 38) -> Yellow: rgb(234, 179, 8) -> Green: rgb(34, 197, 94)
@@ -366,15 +386,50 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
     const affordabilityScore = feature.properties?.affordabilityScore || 0
     const prosperityScore = feature.properties?.prosperityScore || 0
     
-    // Create tooltip with both scores, highlighting the current one
-    const currentScoreName = scoreType === 'affordability' ? 'Affordability' : 'Prosperity'
-    const currentScoreValue = scoreType === 'affordability' ? affordabilityScore : prosperityScore
-    const otherScoreName = scoreType === 'affordability' ? 'Prosperity' : 'Affordability'
-    const otherScoreValue = scoreType === 'affordability' ? prosperityScore : affordabilityScore
+    // Create tooltip with scores, highlighting the current one
+    let currentScoreName = 'Affordability'
+    let currentScoreValue = affordabilityScore
+    let otherScoreName = 'Prosperity'
+    let otherScoreValue = prosperityScore
     
-    const tooltipContent = score === 0 
-      ? `<div style="font-weight: 700; font-size: 17px; color: #2b2520; margin-bottom: 6px;">${countyName}</div><div style="color: #6b5d52; font-size: 14px;">No data available</div>`
-      : `<div style="font-weight: 700; font-size: 17px; color: #2b2520; margin-bottom: 10px; line-height: 1.3;">${countyName}</div>
+    if (scoreType === 'recommendation') {
+      // Calculate recommendation score for display
+      const minScore = -1
+      const maxScore = 2
+      const normalizedAffordability = Math.max(0, Math.min(1, (affordabilityScore - minScore) / (maxScore - minScore)))
+      const normalizedProsperity = Math.max(0, Math.min(1, (prosperityScore - minScore) / (maxScore - minScore)))
+      const invertedAffordability = 1 - normalizedAffordability
+      const recommendationNormalized = (invertedAffordability + normalizedProsperity) / 2
+      const recommendationScore = recommendationNormalized * (maxScore - minScore) + minScore
+      
+      currentScoreName = 'Recommendation'
+      currentScoreValue = recommendationScore
+    } else if (scoreType === 'prosperity') {
+      currentScoreName = 'Prosperity'
+      currentScoreValue = prosperityScore
+      otherScoreName = 'Affordability'
+      otherScoreValue = affordabilityScore
+    }
+    
+    let tooltipContent = ''
+    if (score === 0) {
+      tooltipContent = `<div style="font-weight: 700; font-size: 17px; color: #2b2520; margin-bottom: 6px;">${countyName}</div><div style="color: #6b5d52; font-size: 14px;">No data available</div>`
+    } else if (scoreType === 'recommendation') {
+      tooltipContent = `<div style="font-weight: 700; font-size: 17px; color: #2b2520; margin-bottom: 10px; line-height: 1.3;">${countyName}</div>
+         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(234, 88, 12, 0.1); border-radius: 10px; margin-bottom: 8px; border: 1.5px solid rgba(234, 88, 12, 0.2);">
+           <span style="font-weight: 700; font-size: 14px; color: #2b2520;">${currentScoreName}</span>
+           <span style="color: #ea580c; font-weight: 700; font-size: 17px;">${currentScoreValue.toFixed(2)}</span>
+         </div>
+         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(245, 241, 232, 0.8); border-radius: 10px; margin-bottom: 6px; border: 1.5px solid rgba(232, 227, 216, 0.8);">
+           <span style="font-weight: 600; font-size: 14px; color: #2b2520;">Affordability</span>
+           <span style="color: #2b2520; font-weight: 700; font-size: 17px;">${affordabilityScore.toFixed(2)}</span>
+         </div>
+         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(245, 241, 232, 0.8); border-radius: 10px; border: 1.5px solid rgba(232, 227, 216, 0.8);">
+           <span style="font-weight: 600; font-size: 14px; color: #2b2520;">Prosperity</span>
+           <span style="color: #2b2520; font-weight: 700; font-size: 17px;">${prosperityScore.toFixed(2)}</span>
+         </div>`
+    } else {
+      tooltipContent = `<div style="font-weight: 700; font-size: 17px; color: #2b2520; margin-bottom: 10px; line-height: 1.3;">${countyName}</div>
          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: rgba(234, 88, 12, 0.1); border-radius: 10px; margin-bottom: 8px; border: 1.5px solid rgba(234, 88, 12, 0.2);">
            <span style="font-weight: 700; font-size: 14px; color: #2b2520;">${currentScoreName}</span>
            <span style="color: #ea580c; font-weight: 700; font-size: 17px;">${currentScoreValue.toFixed(2)}</span>
@@ -383,6 +438,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
            <span style="font-weight: 600; font-size: 14px; color: #2b2520;">${otherScoreName}</span>
            <span style="color: #2b2520; font-weight: 700; font-size: 17px;">${otherScoreValue.toFixed(2)}</span>
          </div>`
+    }
     
     layer.bindTooltip(
       tooltipContent,
@@ -450,7 +506,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
       <div className="map-placeholder">
         <p>Map will update as you adjust the form</p>
         <p className="placeholder-subtitle">
-          Change the form inputs to see {scoreType === 'affordability' ? 'affordability' : 'prosperity'} scores on the map
+          Change the form inputs to see {scoreType === 'affordability' ? 'affordability' : scoreType === 'prosperity' ? 'prosperity' : 'recommendation'} scores on the map
         </p>
       </div>
     )
@@ -501,7 +557,7 @@ export default function MapVisualization({ scoreType, formData }: MapVisualizati
         }}
       >
         <div style={{ fontWeight: 700, marginBottom: '10px', fontSize: '0.9rem', letterSpacing: '-0.01em', color: '#2b2520' }}>
-          {scoreType === 'affordability' ? 'Affordability' : 'Prosperity'} Score
+          {scoreType === 'affordability' ? 'Affordability' : scoreType === 'prosperity' ? 'Prosperity' : 'Recommendation'} Score
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#6b5d52' }}>
