@@ -48,7 +48,9 @@ function App() {
     return (
       <div className="questionnaire-container">
         <div className="questionnaire-panel">
-          <h1>Questionnaire</h1>
+          <h1>Team Gigglebytes</h1>
+          <br></br>
+          <h2>Please fill out the questionnaire to proceed.</h2>
           <div className="questionnaire-form">
             <div className="question-group">
               <label className="question-label">Do you have a partner?</label>
@@ -247,6 +249,14 @@ function App() {
             <button className="submit-questionnaire" onClick={handleQuestionnaireSubmit}>
               View Results
             </button>
+              <div className="questionnaire-footer">
+                  <p className="footer-emoji">Gigglebye 👋</p>
+                  <p className="footer-title">Team Gigglebytes</p>
+                  <p className="footer-subtitle">
+                    Hoang (Joe) Do · Brendan Breitzmann · Charlie Keglovitz · Aman Anwar
+                  </p>
+                  <br/>
+              </div>
           </div>
         </div>
       </div>
