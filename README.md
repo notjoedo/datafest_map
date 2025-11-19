@@ -25,7 +25,7 @@ The winning solution was a collaborative effort by Team Gigglebytes, composed of
 | :--- | :--- |
 | Hoang (Joe) Do | [LinkedIn Profile](https://www.linkedin.com/in/hoanglehuydo/) |
 | Aman Anwar | [LinkedIn Profile](https://www.linkedin.com/in/aman-anwar-/)|
-| Charlie Keglovitz | [LinkedIn Profile](https://www.com/in/charlie-keglovitz-7b3a0a2a3/) |
+| Charlie Keglovitz | [LinkedIn Profile](https://www.linkedin.com/in/charlie-keglovitz-7b3a0a2a3/) |
 | Brendan Breitzmann | [LinkedIn Profile](https://www.linkedin.com/in/brendan-breitzmann-bbb834266/) |
 
 ### Technologies Used
